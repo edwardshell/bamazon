@@ -35,7 +35,7 @@ function start() {
             }
             return choiceArr;
           },
-          message: "What is the name of the ID you want to bid on?"
+          message: "What is the product you want to buy?"
         },
         {
           name: "numUnit",
@@ -44,25 +44,50 @@ function start() {
         }
       ])
       .then(function(answer) {
+        var chosenProduct;
         for (var i = 0; i < results.length; i++) {
-            if(results[i].product_name === answer.bamazonBid) {
-                results[i].stock_quantity -= answer.numUnit;
-            }
+          if (results[i].product_name === answer.bamazonBid) {
+            chosenProduct = results[i];
+          }
         }
-
-        if (answer.numUnit < results[i].stock_quantity) {
-            connection.query("UPDATE products SET ? WHERE ?", 
+        if (chosenProduct.stock_quantity > parseInt(answer.numUnit)) {
+          connection.query(
+            "UPDATE products SET ? WHERE ?",
             [
-                {
-                    stock_quantity: answer.numUnit
-                },
-                {
-                    product_name: answer.bamazonBid
-                }
+              {
+                stock_quantity: chosenProduct.stock_quantity-answer.numUnit
+              },
+              {
+                product_name: chosenProduct.product_name
+              }
             ],
-        )
+            function(error) {
+              if (error) throw err;
+              console.log("Bid Placed Succesfully");
+              buyAgain();
+            }
+          );
+        } else {
+          console.log("Insufficient Quantity");
+          start();
         }
       });
-    connection.end();
+    
   });
+  
+}
+
+function buyAgain() {
+  inquirer.prompt({
+    name: "confirm",
+    type: "confirm",
+    message: "Would you like to buy something else?",
+    default: true,
+  }).then(function(answer) {
+    if (answer.confirm === true) {
+      start();
+    } else {
+      connection.end();
+    }
+  })
 }
