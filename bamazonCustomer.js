@@ -64,6 +64,7 @@ function start() {
             function(error) {
               if (error) throw err;
               console.log("Bid Placed Succesfully");
+              console.log("Total Cost = $" + (chosenProduct.price * answer.numUnit));
               buyAgain();
             }
           );
